@@ -125,10 +125,27 @@ def expense_orchestrator(context: df.DurableOrchestrationContext):
     )
 
     if not validation_result["valid"]:
+
+        notification_result = yield context.call_activity(
+            "send_validation_error_notification",
+            {
+                "expense": expense,
+                "validation": validation_result
+            }
+        )
+
         return {
             "status": "validation_error",
-            "details": validation_result
+            "details": validation_result,
+            "notification": notification_result
         }
+
+
+
+
+
+
+    
 
     # Step 2: Auto-approve expenses under $100
     amount = float(expense["amount"])
@@ -368,6 +385,87 @@ Expense Approval System
             "recipient": employee_email,
             "error": str(ex)
         }
+
+
+
+@app.activity_trigger(input_name="notification")
+def send_validation_error_notification(notification: dict):
+
+    expense = notification["expense"]
+    validation = notification["validation"]
+
+    employee_email = expense.get("employeeEmail")
+    employee_name = expense.get("employeeName", "Employee")
+
+    if not employee_email:
+        return {
+            "emailSent": False,
+            "reason": "Employee email is missing"
+        }
+
+    smtp_host = os.environ.get("SMTP_HOST")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_username = os.environ.get("SMTP_USERNAME")
+    smtp_password = os.environ.get("SMTP_PASSWORD")
+    sender_email = os.environ.get("SENDER_EMAIL")
+
+    error = validation.get("error", "Validation failed")
+    missing_fields = validation.get("missingFields", [])
+    valid_categories = validation.get("validCategories", [])
+
+    body = f"""
+Hello {employee_name},
+
+Your expense request could not be processed because validation failed.
+
+Error: {error}
+"""
+
+    if missing_fields:
+        body += f"\nMissing fields: {', '.join(missing_fields)}\n"
+
+    if valid_categories:
+        body += f"\nValid categories: {', '.join(valid_categories)}\n"
+
+    body += """
+Please correct the missing or invalid information and submit the expense again.
+
+Thank you,
+Expense Approval System
+"""
+
+    message = EmailMessage()
+    message["Subject"] = "Expense Validation Error"
+    message["From"] = sender_email
+    message["To"] = employee_email
+    message.set_content(body)
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+
+            if smtp_username and smtp_password:
+                server.login(
+                    smtp_username,
+                    smtp_password
+                )
+
+            server.send_message(message)
+
+        return {
+            "emailSent": True,
+            "recipient": employee_email,
+            "subject": "Expense Validation Error"
+        }
+
+    except Exception as ex:
+        return {
+            "emailSent": False,
+            "recipient": employee_email,
+            "error": str(ex)
+        }
+
+
 
 
 

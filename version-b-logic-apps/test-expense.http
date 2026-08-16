@@ -1,0 +1,89 @@
+### Valid expense
+
+POST http://localhost:7071/api/validate-expense
+Content-Type: application/json
+
+{
+  "employeeName": "John Smith",
+  "employeeEmail": "john@example.com",
+  "amount": 75.00,
+  "category": "meals",
+  "description": "Team lunch",
+  "managerEmail": "manager@example.com"
+}
+
+
+
+
+### Missing required field
+
+POST http://localhost:7071/api/validate-expense
+Content-Type: application/json
+
+{
+  "employeeName": "John Smith",
+  "employeeEmail": "john@example.com",
+  "amount": 150.00,
+  "category": "travel",
+  "description": "Business trip"
+}
+
+
+
+### Invalid category
+
+POST http://localhost:7071/api/validate-expense
+Content-Type: application/json
+
+{
+  "employeeName": "John Smith",
+  "employeeEmail": "john@example.com",
+  "amount": 250.00,
+  "category": "entertainment",
+  "description": "Client event",
+  "managerEmail": "manager@example.com"
+}
+
+
+
+### Cloud validation test
+
+POST https://cst8917-function-app-expense-validation.azurewebsites.net/api/validate-expense
+Content-Type: application/json
+
+{
+  "employeeName": "John Smith",
+  "employeeEmail": "john@example.com",
+  "amount": 75.00,
+  "category": "meals",
+  "description": "Team lunch",
+  "managerEmail": "manager@example.com"
+}
+
+
+
+
+
+
+### new test, please delete it
+
+POST https://cst8917-function-app-expense-validation.azurewebsites.net/api/validate-expense
+Content-Type: application/json
+
+{
+  "employeeName": "Michael Chen",
+  "employeeEmail": "yang0371@algonquinlive.com",
+  "amount": 250,
+  "category": "equipment",
+  "description": "New monitor",
+  "managerEmail": "yang0371@algonquinlive.com"
+}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,517 @@
+### Test 1 - Start expense orchestration
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "John Smith",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 75.00,
+  "category": "meals",
+  "description": "Team lunch",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+
+### Test 2A - Expense >= $100, manager approves - Start workflow
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Michael Chen",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 250.00,
+  "category": "equipment",
+  "description": "New monitor",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+### Test 2B - Manager approves
+
+POST http://localhost:7071/api/expenses/73fca54b8a304994b2d3a45e02de0936/decision
+Content-Type: application/json
+
+{
+  "decision": "approve"
+}
+
+
+
+
+### Test 3A - Start expense >= $100
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Jane Lee",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 500.00,
+  "category": "travel",
+  "description": "Conference travel",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+### Test 3B - Manager rejects
+
+POST http://localhost:7071/api/expenses/053b491a36dc406696c6c2b176574b3d/decision
+Content-Type: application/json
+
+{
+  "decision": "reject"
+}
+   
+
+### Test 4 - Expense >= $100, no manager response - Timeout/Escalation
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Alice Wong",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 350.00,
+  "category": "software",
+  "description": "Software license",
+  "managerEmail": "hy2working@gmail.com"
+}   
+
+
+### Test 5 - Missing required field
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "John Smith",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 150.00,
+  "category": "travel",
+  "description": "Business trip"
+}
+
+
+### Test 6 - Invalid category
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "John Smith",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 250.00,
+  "category": "entertainment",
+  "description": "Client event",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+### Temporary test - Manager approval required
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "John Smith",
+  "employeeEmail": "john@example.com",
+  "amount": 250.00,
+  "category": "equipment",
+  "description": "New monitor",
+  "managerEmail": "manager@example.com"
+}
+
+
+
+
+
+
+############################################################
+# CST8917 Assignment 2
+# Version B - Logic Apps + Service Bus
+# Azure Function Validation Tests
+#
+############################################################
+
+
+@localUrl = http://localhost:7071/api/validate-expense
+@cloudUrl = https://cst8917-function-app-expense-validation.azurewebsites.net/api/validate-expense
+
+
+############################################################
+# SCENARIO 1
+# Valid expense under $100
+# Expected:
+# - Validation: valid = true
+# - Logic App: Auto-approved
+# - No manager approval required
+# - Employee receives automatic approval email
+############################################################
+
+### Scenario 1 - Under $100 - Auto-approved
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 1",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 50.00,
+  "category": "meals",
+  "description": "Team lunch",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+############################################################
+# SCENARIO 2
+# Valid expense >= $100 - Manager approves
+# Expected:
+# - Validation: valid = true
+# - Logic App sends approval email to manager
+# - Manager selects Approve
+# - Outcome: Approved
+# - Employee receives approval email
+############################################################
+
+### Scenario 2 - $250 - Manager Approves
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 2",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 250.00,
+  "category": "equipment",
+  "description": "New computer monitor",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+############################################################
+# SCENARIO 3
+# Valid expense >= $100 - Manager rejects
+# Expected:
+# - Validation: valid = true
+# - Logic App sends approval email to manager
+# - Manager selects Reject
+# - Outcome: Rejected
+# - Employee receives rejection email
+############################################################
+
+### Scenario 3 - $450 - Manager Rejects
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 3",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 450.00,
+  "category": "software",
+  "description": "Cloud software subscription",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+############################################################
+# SCENARIO 4
+# Valid expense >= $100 - No manager response
+# Expected:
+# - Validation: valid = true
+# - Logic App waits for manager decision
+# - Manager does NOT respond
+# - Timeout occurs
+# - Expense auto-approved
+# - escalated = true
+# - Employee receives escalation/approval email
+############################################################
+
+### Scenario 4 - $350 - Manager Timeout / Escalated
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 4",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 350.00,
+  "category": "software",
+  "description": "Microsoft software license",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+############################################################
+# SCENARIO 5
+# Missing required field
+#
+# Intentionally missing:
+# description
+#
+# Expected validation response:
+# {
+#   "valid": false,
+#   "error": "Missing required fields",
+#   "missingFields": ["description"]
+# }
+############################################################
+
+### Scenario 5 - Missing Required Field
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 5",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 75.00,
+  "category": "meals",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+############################################################
+# SCENARIO 6
+# Invalid category
+#
+# "entertainment" is NOT allowed.
+#
+# Valid categories:
+# travel
+# meals
+# supplies
+# equipment
+# software
+# other
+#
+# Expected validation response:
+# {
+#   "valid": false,
+#   "error": "Invalid category",
+#   "validCategories": [...]
+# }
+############################################################
+
+### Scenario 6 - Invalid Category
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 6",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 75.00,
+  "category": "entertainment",
+  "description": "Client entertainment expense",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+############################################################
+# OPTIONAL CLOUD TESTS
+############################################################
+
+### Cloud Test - Scenario 1
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Cloud",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 50.00,
+  "category": "meals",
+  "description": "Team lunch",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+### Cloud Test - Scenario 6 Invalid Category
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Cloud Invalid",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 75.00,
+  "category": "entertainment",
+  "description": "Invalid category test",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+
+
+
+
+
+
+
+
+############################################################
+# CST8917 Assignment 2
+# Version A - Durable Functions
+# Expense Approval Workflow
+############################################################
+
+
+############################################################
+# SCENARIO 1
+# Valid expense under $100
+# Expected: auto-approved
+############################################################
+
+### Scenario 1 - Under $100 - Auto-approved
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 1",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 50.00,
+  "category": "meals",
+  "description": "Team lunch",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+############################################################
+# SCENARIO 2
+# Valid expense >= $100
+# Manager approves
+############################################################
+
+### Scenario 2A - Start Manager Approval Workflow
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 2",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 250.00,
+  "category": "equipment",
+  "description": "New computer monitor",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+### Scenario 2B - Manager Approves
+# IMPORTANT:
+# Replace INSTANCE_ID with the instanceId returned by Scenario 2A.
+
+POST http://localhost:7071/api/expenses/97e4fa8d8c0f4d8f93060a3a5572ad1a/decision
+Content-Type: application/json
+
+{
+  "decision": "approve"
+}
+
+
+############################################################
+# SCENARIO 3
+# Valid expense >= $100
+# Manager rejects
+############################################################
+
+### Scenario 3A - Start Manager Rejection Workflow
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 3",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 450.00,
+  "category": "software",
+  "description": "Cloud software subscription",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+### Scenario 3B - Manager Rejects
+
+POST http://localhost:7071/api/expenses/213a1214101e4887912370bf750841dd/decision
+Content-Type: application/json
+
+{
+  "decision": "reject"
+}
+
+
+############################################################
+# SCENARIO 4
+# Valid expense >= $100
+# No manager response
+# Expected after 60 seconds:
+# approved + timeout-auto-approved + escalated true
+############################################################
+
+### Scenario 4 - Timeout / Escalation
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 4",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 350.00,
+  "category": "software",
+  "description": "Microsoft software license",
+  "managerEmail": "hy2working@gmail.com"
+}
+
+
+############################################################
+# SCENARIO 5
+# Missing required field
+#
+# Intentionally missing:
+# managerEmail
+#
+# Expected:
+# status = validation_error
+# error = Missing required fields
+############################################################
+
+### Scenario 5 - Missing Required Field
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 5",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 75.00,
+  "category": "meals",
+  "description": "Team lunch"
+}
+
+
+############################################################
+# SCENARIO 6
+# Invalid category
+#
+# entertainment is not valid.
+############################################################
+
+### Scenario 6 - Invalid Category
+
+POST http://localhost:7071/api/expenses
+Content-Type: application/json
+
+{
+  "employeeName": "Test Employee Scenario 6",
+  "employeeEmail": "hy2working@gmail.com",
+  "amount": 75.00,
+  "category": "entertainment",
+  "description": "Client entertainment expense",
+  "managerEmail": "hy2working@gmail.com"
+}

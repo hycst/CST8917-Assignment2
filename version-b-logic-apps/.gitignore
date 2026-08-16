@@ -50,35 +50,3 @@ __queuestorage__
 __tablestorage__/
 __azurite_db*__.json
 AzuriteConfig
-
-
-
-# Azure Functions local settings - contains secrets
-local.settings.json
-
-# Python
-.venv/
-venv/
-__pycache__/
-*.pyc
-
-# VS Code
-.vscode/
-
-# Azurite local data
-__blobstorage__/
-__queuestorage__/
-__azurite_db_*.json
-AzuriteConfig
-
-# Environment / secrets
-.env
-*.env
-
-# OS
-.DS_Store
-Thumbs.db
-
-
-# Deployment packages
-*.zip
