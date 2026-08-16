@@ -622,20 +622,20 @@ reviewed and completed by the student.
 
 Slides: 
 
-ScreenShot:
+#### ScreenShot:
+https://github.com/hycst/CST8917-Assignment2/tree/main/version-b-logic-apps/screenshot
+https://github.com/hycst/CST8917-Assignment2/tree/main/version-a-durable-functions/screenshot
 
-Demo Video: 
 
-Assignment 2 Video Part 1:
+####  Demo Video: 
+
+#####  Assignment 2 Video Part 1:
 https://youtu.be/dpXarlo_fDc
 
-
-Assignment 2 Video Part 2: (Version 1)
+##### Assignment 2 Video Part 2: (Version 1)
 https://youtu.be/8_nKFAl03Ec
 
-
-
-Assignment 2 Video Part 2: (Version 2)
+#####  Assignment 2 Video Part 2: (Version 2)
 https://youtu.be/uxNfofaKUh0
 
 
