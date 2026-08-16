@@ -621,7 +621,8 @@ reviewed and completed by the student.
 #### 12. Presentation
 
 #### Slides: 
-https://github.com/hycst/CST8917-Assignment2/blob/main/presentation/slides.pptx
+presentation/slides.pdf
+https://github.com/hycst/CST8917-Assignment2/blob/main/presentation/slides.pdf
 
 #### ScreenShot:
 https://github.com/hycst/CST8917-Assignment2/tree/main/version-b-logic-apps/screenshot
@@ -646,6 +647,10 @@ interaction, observability, and cost.
 
 **Presentation slides:** `presentation/slides.pptx`
 https://github.com/hycst/CST8917-Assignment2/blob/main/presentation/slides.pptx
+
+
+presentation/slides.pdf
+https://github.com/hycst/CST8917-Assignment2/blob/main/presentation/slides.pdf
 
 **Video demonstration:** See `presentation/video-link.md
 #####  Assignment 2 Video Part 1:
