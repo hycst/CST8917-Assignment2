@@ -1,9 +1,9 @@
-# CST8917 Assignment 2 --- Compare & Contrast: Dual Implementation of an Expense Approval Workflow
+#### CST8917 Assignment 2 --- Compare & Contrast: Dual Implementation of an Expense Approval Workflow
 
 
 ------------------------------------------------------------------------
 
-## 1. Project Overview
+#### 1. Project Overview
 
 This project implements the same expense approval workflow using two
 different Azure serverless orchestration approaches:
@@ -22,7 +22,7 @@ observability, and cost can be compared fairly.
 
 ------------------------------------------------------------------------
 
-## 2. Expense Approval Business Rules
+#### 2. Expense Approval Business Rules
 
 Each expense request contains employee name, employee email, amount,
 category, description, and manager email.
@@ -54,9 +54,9 @@ category, description, and manager email.
 
 ------------------------------------------------------------------------
 
-# 3. Version A --- Azure Durable Functions
+#### 3. Version A --- Azure Durable Functions
 
-## 3.1 Overview
+#### 3.1 Overview
 
 Version A implements the expense workflow using **Azure Durable
 Functions with the Python v2 programming model**.
@@ -73,7 +73,7 @@ POST /api/expenses
 
 The client function starts a new instance of the `expense_orchestrator`.
 
-### Architecture
+#### Architecture
 
 ``` text
 HTTP Expense Request
@@ -112,21 +112,21 @@ Auto Approve    Wait for ManagerDecision
              send_notification
 ```
 
-## 3.2 Design Decisions
+#### 3.2 Design Decisions
 
-### Validation Activity
+#### Validation Activity
 
 The `validate_expense` activity verifies that all required fields exist
 and checks whether the category is supported. Keeping validation in an
 activity function separates business validation from orchestration
 logic.
 
-### Automatic Approval
+#### Automatic Approval
 
 If the expense amount is below `$100`, the orchestrator immediately
 creates an approved outcome without waiting for a manager.
 
-### Human Interaction Pattern
+#### Human Interaction Pattern
 
 For expenses of `$100` or more, the orchestrator waits for the external
 event `ManagerDecision`.
@@ -140,7 +140,7 @@ POST /api/expenses/{instance_id}/decision
 The request contains either `{"decision": "approve"}` or
 `{"decision": "reject"}`.
 
-### Durable Timeout
+#### Durable Timeout
 
 The orchestrator creates a durable timer while waiting for the manager
 decision. For demonstration and testing, the timeout was configured to
@@ -152,14 +152,14 @@ approved and `escalated` is set to `true`.
 
 This demonstrates the Durable Functions **Human Interaction pattern**.
 
-### Email Notification
+#### Email Notification
 
 After the final outcome is determined, an activity function sends an
 email to the employee using SMTP. The notification indicates whether the
 expense was automatically approved, manager approved, manager rejected,
 or approved after timeout and escalated.
 
-## 3.3 Version A Test Scenarios
+#### 3.3 Version A Test Scenarios
 
 The `test-durable.http` file contains tests for all six required
 scenarios.
@@ -176,7 +176,7 @@ scenarios.
 During testing, Durable Functions status endpoints were useful for
 viewing orchestration state and final output.
 
-## 3.4 Challenges --- Version A
+#### 3.4 Challenges --- Version A
 
 One challenge was understanding how Durable Functions handles
 asynchronous orchestration and external events. For manager approval, I
@@ -198,9 +198,9 @@ relatively easy to understand exactly which branch was executed.
 
 ------------------------------------------------------------------------
 
-# 4. Version B --- Logic Apps + Service Bus
+#### 4. Version B --- Logic Apps + Service Bus
 
-## 4.1 Overview
+#### 4.1 Overview
 
 Version B implements the same workflow using a visual/declarative
 serverless architecture.
@@ -209,7 +209,7 @@ The main Azure components are Azure Service Bus queue, Azure Logic App,
 Azure Function for expense validation, Microsoft 365 email connector,
 Azure Service Bus topic, and filtered topic subscriptions.
 
-### Architecture
+#### Architecture
 
 ``` text
 Expense Request
@@ -253,14 +253,14 @@ Error Email   Check Amount
                 Topic        Notification
 ```
 
-## 4.2 Service Bus Queue
+#### 4.2 Service Bus Queue
 
 Incoming expense requests are placed in a Service Bus queue. The Logic
 App uses **When a message is received in a queue (auto-complete)** as
 its trigger. This provides asynchronous messaging between the request
 producer and the workflow.
 
-## 4.3 Azure Function Validation
+#### 4.3 Azure Function Validation
 
 Instead of implementing all validation directly inside the Logic App, I
 created an Azure Function named `validate-expense`.
@@ -270,7 +270,7 @@ validation Function checks required fields, valid expense category,
 numeric amount, and negative amounts. This keeps detailed validation
 logic in Python while using Logic Apps for workflow orchestration.
 
-## 4.4 Manager Approval Approach
+#### 4.4 Manager Approval Approach
 
 For expenses of `$100` or more, Version B uses Logic Apps email/approval
 capabilities to request a manager decision.
@@ -284,7 +284,7 @@ The workflow determines whether the manager approves, rejects, or does
 not respond before the timeout. A timeout results in automatic approval
 with the expense flagged as escalated.
 
-## 4.5 Service Bus Topic and Subscriptions
+#### 4.5 Service Bus Topic and Subscriptions
 
 The workflow uses a Service Bus topic for expense outcomes. Filtered
 subscriptions represent Approved, Rejected, and Escalated outcomes.
@@ -292,7 +292,7 @@ subscriptions represent Approved, Rejected, and Escalated outcomes.
 This demonstrates publish/subscribe messaging and allows different
 consumers to receive only the outcomes they are interested in.
 
-## 4.6 Logic Apps Testing
+#### 4.6 Logic Apps Testing
 
 The same six business scenarios were tested.
 
@@ -312,7 +312,7 @@ True/False branches, email actions, and action inputs and outputs.
 I also verified the workflow by checking the emails received by the
 employee.
 
-## 4.7 Challenges --- Version B
+#### 4.7 Challenges --- Version B
 
 Version B was visually easier to follow, but several data-handling
 issues took time to troubleshoot.
@@ -337,9 +337,9 @@ graphical view showed exactly which action or condition failed.
 
 ------------------------------------------------------------------------
 
-# 5. Comparison Analysis
+#### 5. Comparison Analysis
 
-## 5.1 Development Experience
+#### 5.1 Development Experience
 
 The two implementations provided very different development experiences.
 
@@ -363,7 +363,7 @@ For this project, Logic Apps was faster for visualizing the workflow,
 while Durable Functions gave me more confidence in the detailed program
 logic.
 
-## 5.2 Testability
+#### 5.2 Testability
 
 Durable Functions was easier for local testing.
 
@@ -385,7 +385,7 @@ workflow was less convenient for local automated testing. Therefore,
 Durable Functions provided the better testing experience for this
 project.
 
-## 5.3 Error Handling
+#### 5.3 Error Handling
 
 Durable Functions provided more explicit programmatic control over
 errors.
@@ -407,7 +407,7 @@ values, and debugging them required examining the exact runtime data.
 I found Logic Apps better for visually locating failures, while Durable
 Functions gave me more control over how failures should be handled.
 
-## 5.4 Human Interaction Pattern
+#### 5.4 Human Interaction Pattern
 
 This was one of the clearest differences between the two
 implementations.
@@ -426,7 +426,7 @@ For this specific long-running approval scenario, I found Durable
 Functions more natural because waiting for an external human event is
 part of its orchestration model.
 
-## 5.5 Observability
+#### 5.5 Observability
 
 Logic Apps was stronger in immediate visual observability.
 
@@ -444,7 +444,7 @@ Logic Apps provides a more accessible visual representation. For
 operations teams or users who prefer visual monitoring, Logic Apps has
 an advantage.
 
-## 5.6 Cost
+#### 5.6 Cost
 
 Both solutions use consumption-based Azure services, but their cost
 models are different.
@@ -475,7 +475,7 @@ rather than assuming that one approach is always cheaper.
 
 ------------------------------------------------------------------------
 
-# 6. Recommendation
+#### 6. Recommendation
 
 For this expense approval system, I would choose **Azure Durable
 Functions** for a production implementation if the development team is
@@ -507,7 +507,7 @@ managed connectors, Logic Apps can be the better solution.
 
 ------------------------------------------------------------------------
 
-# 7. Lessons Learned
+#### 7. Lessons Learned
 
 This assignment helped me understand that two serverless technologies
 can implement the same business requirement but provide very different
@@ -537,7 +537,7 @@ full workflow, and add more automated tests.
 
 ------------------------------------------------------------------------
 
-# 8. Repository Structure
+#### 8. Repository Structure
 
 ``` text
 CST8917-Assignment2/
@@ -561,7 +561,7 @@ CST8917-Assignment2/
 
 ------------------------------------------------------------------------
 
-# 9. Security
+#### 9. Security
 
 Sensitive configuration information is not committed to this repository.
 
@@ -579,7 +579,7 @@ Use `local.settings.example.json` with placeholder values instead.
 
 ------------------------------------------------------------------------
 
-# 10. References
+#### 10. References
 
 -   Microsoft Learn. **Durable Functions overview.**\
     https://learn.microsoft.com/azure/azure-functions/durable/durable-functions-overview
@@ -601,7 +601,7 @@ Use `local.settings.example.json` with placeholder values instead.
 
 ------------------------------------------------------------------------
 
-# 11. AI Disclosure
+#### 11. AI Disclosure
 
 Generative AI tools, including ChatGPT, were used during this assignment
 as a learning and development aid.
@@ -618,9 +618,10 @@ reviewed and completed by the student.
 
 ------------------------------------------------------------------------
 
-# 12. Presentation
+#### 12. Presentation
 
-Slides: 
+#### Slides: 
+https://github.com/hycst/CST8917-Assignment2/blob/main/presentation/slides.pptx
 
 #### ScreenShot:
 https://github.com/hycst/CST8917-Assignment2/tree/main/version-b-logic-apps/screenshot
@@ -644,5 +645,14 @@ their development experience, testability, error handling, human
 interaction, observability, and cost.
 
 **Presentation slides:** `presentation/slides.pptx`
+https://github.com/hycst/CST8917-Assignment2/blob/main/presentation/slides.pptx
 
-**Video demonstration:** See `presentation/video-link.md`
+**Video demonstration:** See `presentation/video-link.md
+#####  Assignment 2 Video Part 1:
+https://youtu.be/dpXarlo_fDc
+
+##### Assignment 2 Video Part 2: (Version 1)
+https://youtu.be/8_nKFAl03Ec
+
+#####  Assignment 2 Video Part 2: (Version 2)
+https://youtu.be/uxNfofaKUh0
